@@ -1,0 +1,39 @@
+/*
+use stap -o outfile mon_rw.stp to generate the og data;
+use which_rw.py outfile to get the result
+Sample:
+[('ServiceProcess_', 1), ('vix-poll', 14), ('QThread', 32), ('klipper', 32), ('kded4', 32), ('bash', 43), ('knotify4', 96), ('pcscd', 120), ('thnuclnt', 148), ('fcitx', 162), ('kwin', 320), ('vmware-tray', 448), ('gpg-agent', 640), ('plasma-desktop', 1088), ('vmx-vcpu-1', 1664), ('dropbox', 2280), ('vmx-vcpu-0', 2838), ('Cache I/O', 3072), ('vmnet-dhcpd', 3200), ('gdbus', 6672), ('firefox', 7134), ('in:imklog', 8096), ('systemd-journal', 8192), ('systemd-udevd', 8448), ('DNS Res~ver #20', 16384), ('hostd-worker', 16647), ('vmnet-natd', 32768), ('Socket Thread', 81920), ('vmware-vmx', 90368), ('vmware', 98700), ('tailf', 554048), ('xfce4-terminal', 1541685), ('X', 54539108)]
+[('WorkerPool/6678', 1), ('ImageDe~der #67', 1), ('URL Classifier', 1), ('mozStorage #5', 2), ('ImageDe~der #68', 3), ('DNS Res~ver #10', 3), ('DNS Res~ver #18', 5), ('HTML5 Parser', 9), ('kwin', 10), ('vmware-tray', 14), ('kactivitymanage', 16), ('klipper', 16), ('vmx-vcpu-1', 16), ('kded4', 32), ('knotify4', 48), ('bash', 72), ('Socket Thread', 83), ('vmx-vcpu-0', 88), ('vix-poll', 112), ('firefox', 133), ('rs:main Q:Reg', 215), ('hostd-worker', 448), ('vmware', 480), ('plasma-desktop', 751), ('Timer', 1158), ('vmware-vmx', 3514), ('gdbus', 9536), ('Cache I/O', 67124), ('tailf', 470522), ('DOM Worker', 567554), ('xfce4-terminal', 801170)]
+*/
+probe begin {
+	printf("monitor enabled\n");
+} 
+
+global counter;
+probe syscall.write {
+	if (counter < 5000000) { 
+		counter += 1; 
+		process = execname(); 
+		/* ignore stap itself */
+		if (process !="stapio") {
+			printf("w'%s`%d-%d\n", execname(), $fd, $count); 
+		}
+	} else {
+		exit();
+	}
+	
+
+}
+probe syscall.read {
+	if (counter < 5000000) {
+		counter += 1;
+		process = execname();
+		/* ignore stap itself */ 
+		if (process != "stapio") {
+			printf("r'%s`%d-%d\n", process, $fd, $count);
+		}
+	} else {
+		exit();
+}
+
+
