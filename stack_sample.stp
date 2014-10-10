@@ -1,0 +1,19 @@
+/*对进程栈采样*/
+global s;
+global c = 0;
+probe timer.profile {
+	if (execname() == "python") {
+		c += 1;
+		s[ubacktrace()] <<< 1;
+	}
+	if (c > 10) {
+		exit();
+	}
+} 
+
+probe end {
+	foreach (i in s+) {
+		printf("\n");
+		print_stack(i);
+	}
+}
